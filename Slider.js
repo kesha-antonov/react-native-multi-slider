@@ -2,13 +2,12 @@
 
 var React = require('react');
 var ReactNative = require('react-native');
-var {
-  PropTypes
-} = React;
+var PropTypes = require('prop-types');
 var {
   StyleSheet,
   PanResponder,
   View,
+  ViewPropTypes,
   TouchableHighlight
 } = ReactNative;
 
@@ -36,29 +35,29 @@ var sliderProps = {
 
   optionsArray: PropTypes.array,
 
-  containerStyle: View.propTypes.style,
-  trackStyle: View.propTypes.style,
-  selectedStyle: View.propTypes.style,
-  unselectedStyle: View.propTypes.style,
-  markerStyle: View.propTypes.style,
-  pressedMarkerStyle: View.propTypes.style
+  containerStyle: ViewPropTypes.style,
+  trackStyle: ViewPropTypes.style,
+  selectedStyle: ViewPropTypes.style,
+  unselectedStyle: ViewPropTypes.style,
+  markerStyle: ViewPropTypes.style,
+  pressedMarkerStyle: ViewPropTypes.style
 };
 
-var Slider = React.createClass({
+class Slider extends React.Component {
 
-  propTypes: sliderProps,
+  static propTypes = sliderProps
 
-  getDefaultProps: function() {
-    return mockProps;
-  },
+  static defaultProps = mockProps
 
-  getInitialState() {
+  constructor(props) {
+    super(props)
+
     this.optionsArray = this.props.optionsArray || converter.createArray(this.props.min,this.props.max,this.props.step);
     this.stepLength = this.props.sliderLength/this.optionsArray.length;
 
     var initialValues = this.props.values.map(value => converter.valueToPosition(value,this.optionsArray,this.props.sliderLength));
 
-    return {
+    this.state = {
       pressedOne: true,
       valueOne: this.props.values[0],
       valueTwo: this.props.values[1],
@@ -67,7 +66,9 @@ var Slider = React.createClass({
       positionOne: initialValues[0],
       positionTwo: initialValues[1]
     };
-  },
+
+    this.bindFunctions()
+  }
 
   componentWillMount() {
     var customPanResponder = function (start,move,end) {
@@ -88,14 +89,23 @@ var Slider = React.createClass({
     this._panResponderOne = customPanResponder(this.startOne, this.moveOne, this.endOne);
     this._panResponderTwo = customPanResponder(this.startTwo, this.moveTwo, this.endTwo);
 
-  },
+  }
 
   componentWillReceiveProps(nextProps) {
     var { values } = this.props;
     if (nextProps.values.join() !== values.join()) {
       this.set(nextProps);
     }
-  },
+  }
+
+  bindFunctions() {
+    this.startOne = this.startOne.bind(this)
+    this.moveOne = this.moveOne.bind(this)
+    this.endOne = this.endOne.bind(this)
+    this.startTwo = this.startTwo.bind(this)
+    this.moveTwo = this.moveTwo.bind(this)
+    this.endTwo = this.endTwo.bind(this)
+  }
 
   set(config) {
     var { max, min, optionsArray, step, values } = config || this.props;
@@ -113,21 +123,21 @@ var Slider = React.createClass({
       positionOne: initialValues[0],
       positionTwo: initialValues[1]
     });
-  },
+  }
 
   startOne () {
     this.props.onValuesChangeStart();
     this.setState({
       onePressed: !this.state.onePressed
     });
-  },
+  }
 
   startTwo () {
     this.props.onValuesChangeStart();
     this.setState({
       twoPressed: !this.state.twoPressed
     });
-  },
+  }
 
   moveOne(gestureState) {
     var unconfined = gestureState.dx + this.state.pastOne;
@@ -154,7 +164,7 @@ var Slider = React.createClass({
         this.props.onValuesChange(change);
       });
     }
-  },
+  }
 
   moveTwo(gestureState) {
     var unconfined  = gestureState.dx + this.state.pastTwo;
@@ -176,7 +186,7 @@ var Slider = React.createClass({
         this.props.onValuesChange([this.state.valueOne,this.state.valueTwo]);
       });
     }
-  },
+  }
 
   endOne(gestureState) {
     this.setState({
@@ -189,7 +199,7 @@ var Slider = React.createClass({
       }
       this.props.onValuesChangeFinish(change);
     });
-  },
+  }
 
   endTwo(gestureState) {
     this.setState({
@@ -198,7 +208,7 @@ var Slider = React.createClass({
     }, function () {
       this.props.onValuesChangeFinish([this.state.valueOne,this.state.valueTwo]);
     });
-  },
+  }
 
   render() {
     var {positionOne, positionTwo} = this.state;
@@ -265,7 +275,7 @@ var Slider = React.createClass({
       </View>
     );
   }
-});
+};
 
 module.exports = Slider;
 

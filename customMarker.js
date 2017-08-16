@@ -2,21 +2,19 @@
 
 var React = require('react');
 var ReactNative = require('react-native');
-var {
-  PropTypes
-} = React;
+var PropTypes = require('prop-types');
 var {
   StyleSheet,
   Image
 } = ReactNative;
 
-var CustomMarker = React.createClass({
+class CustomMarker extends React.PureComponent({
 
-  propTypes: {
+  static propTypes = {
     pressed: PropTypes.bool,
-  },
+  }
 
-  render: function () {
+  render() {
     return (
       <Image
         style={styles.image}
@@ -25,7 +23,7 @@ var CustomMarker = React.createClass({
       />
     );
   }
-});
+};
 
 var styles = StyleSheet.create({
   image: {
