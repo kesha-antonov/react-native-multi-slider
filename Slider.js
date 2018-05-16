@@ -8,7 +8,8 @@ var {
   PanResponder,
   View,
   ViewPropTypes,
-  TouchableHighlight
+  TouchableHighlight,
+  TouchableWithoutFeedback
 } = ReactNative;
 
 var converter = require('./converter.js');
@@ -210,6 +211,11 @@ class Slider extends React.Component {
     });
   }
 
+  onPressTrack = (e) => {
+    if ( this.props.onPressTrack )
+      this.props.onPressTrack(e);
+  }
+
   render() {
     var {positionOne, positionTwo} = this.state;
     var {selectedStyle, unselectedStyle, sliderLength} = this.props;
@@ -234,8 +240,12 @@ class Slider extends React.Component {
     };
 
     return (
-      <View style={[styles.container, this.props.containerStyle]}>
-        <View style={[styles.fullTrack, { width: sliderLength }]}>
+      <TouchableWithoutFeedback
+        onPress={ this.onPressTrack }
+      >
+        <View
+          style={[styles.fullTrack, this.props.containerStyle, { width: sliderLength }]}
+        >
           <View style={[this.props.trackStyle, styles.track, trackOneStyle, { width: trackOneLength }]} />
           <View style={[this.props.trackStyle, styles.track, trackTwoStyle, { width: trackTwoLength }]} />
           { twoMarkers && (
@@ -270,9 +280,8 @@ class Slider extends React.Component {
                 />
             </View>
           ) }
-
         </View>
-      </View>
+      </TouchableWithoutFeedback>
     );
   }
 };
@@ -281,9 +290,6 @@ module.exports = Slider;
 
 
 var styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-  },
   fullTrack: {
     flexDirection: 'row',
   },
