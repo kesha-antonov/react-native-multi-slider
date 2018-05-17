@@ -8,7 +8,6 @@ var {
   PanResponder,
   View,
   ViewPropTypes,
-  TouchableHighlight,
   TouchableWithoutFeedback
 } = ReactNative;
 
@@ -72,24 +71,8 @@ class Slider extends React.Component {
   }
 
   componentWillMount() {
-    var customPanResponder = function (start,move,end) {
-      return PanResponder.create({
-        onStartShouldSetPanResponder: (evt, gestureState) => true,
-        onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
-        onMoveShouldSetPanResponder: (evt, gestureState) => true,
-        onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
-        onPanResponderGrant: (evt, gestureState) => start(),
-        onPanResponderMove: (evt, gestureState) => move(gestureState),
-        onPanResponderTerminationRequest: (evt, gestureState) => false,
-        onPanResponderRelease: (evt, gestureState) => end(gestureState),
-        onPanResponderTerminate: (evt, gestureState) => end(gestureState),
-        onShouldBlockNativeResponder: (evt, gestureState) => true
-      })
-    };
-
-    this._panResponderOne = customPanResponder(this.startOne, this.moveOne, this.endOne);
-    this._panResponderTwo = customPanResponder(this.startTwo, this.moveTwo, this.endTwo);
-
+    this._panResponderOne = this.customPanResponder(this.startOne, this.moveOne, this.endOne);
+    this._panResponderTwo = this.customPanResponder(this.startTwo, this.moveTwo, this.endTwo);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -106,7 +89,23 @@ class Slider extends React.Component {
     this.startTwo = this.startTwo.bind(this)
     this.moveTwo = this.moveTwo.bind(this)
     this.endTwo = this.endTwo.bind(this)
+    this.customPanResponder = this.customPanResponder.bind(this)
   }
+
+  customPanResponder(start,move,end) {
+    return PanResponder.create({
+      onStartShouldSetPanResponder: (evt, gestureState) => true,
+      onStartShouldSetPanResponderCapture: (evt, gestureState) => true,
+      onMoveShouldSetPanResponder: (evt, gestureState) => true,
+      onMoveShouldSetPanResponderCapture: (evt, gestureState) => true,
+      onPanResponderGrant: (evt, gestureState) => start(),
+      onPanResponderMove: (evt, gestureState) => move(gestureState),
+      onPanResponderTerminationRequest: (evt, gestureState) => false,
+      onPanResponderRelease: (evt, gestureState) => end(gestureState),
+      onPanResponderTerminate: (evt, gestureState) => end(gestureState),
+      onShouldBlockNativeResponder: (evt, gestureState) => true
+    })
+  };
 
   set(config) {
     var { max, min, optionsArray, step, values } = config || this.props;
@@ -240,48 +239,48 @@ class Slider extends React.Component {
     };
 
     return (
-      <TouchableWithoutFeedback
-        onPress={ this.onPressTrack }
+      <View
+        style={[styles.row, this.props.containerStyle, { width: sliderLength }]}
       >
-        <View
-          style={[styles.fullTrack, this.props.containerStyle, { width: sliderLength }]}
+        <TouchableWithoutFeedback
+          onPress={ this.onPressTrack }
         >
-          <View style={[this.props.trackStyle, styles.track, trackOneStyle, { width: trackOneLength }]} />
-          <View style={[this.props.trackStyle, styles.track, trackTwoStyle, { width: trackTwoLength }]} />
-          { twoMarkers && (
-            <View style={[this.props.trackStyle, styles.track, trackThreeStyle, { width: trackThreeLength }]} />
-          ) }
+          <View style={styles.row}>
+            <View style={[this.props.trackStyle, styles.track, trackOneStyle, { width: trackOneLength }]} />
+            <View style={[this.props.trackStyle, styles.track, trackTwoStyle, { width: trackTwoLength }]} />
+          </View>
+        </TouchableWithoutFeedback>
+        { twoMarkers && (
+          <View style={[this.props.trackStyle, styles.track, trackThreeStyle, { width: trackThreeLength }]} />
+        ) }
 
 
+        <View
+          style={[styles.touch, touchStyle, {left: -(trackTwoLength + trackThreeLength + width / 2)}]}
+          {...this._panResponderOne.panHandlers}
+          >
+          <Marker
+            pressed={this.state.onePressed}
+            value={this.state.valueOne}
+            markerStyle={this.props.markerStyle}
+            pressedMarkerStyle={this.props.pressedMarkerStyle}
+            />
+        </View>
+
+        { twoMarkers && (positionOne !== this.props.sliderLength) && (
           <View
-            style={[styles.touch, touchStyle, {left: -(trackTwoLength + trackThreeLength + width / 2)}]}
-            ref={component => this._markerOne = component}
-            {...this._panResponderOne.panHandlers}
+            style={[styles.touch, touchStyle, {left: -(trackThreeLength + width * 1.5)}]}
+            {...this._panResponderTwo.panHandlers}
             >
             <Marker
-              pressed={this.state.onePressed}
+              pressed={this.state.twoPressed}
               value={this.state.valueOne}
               markerStyle={this.props.markerStyle}
               pressedMarkerStyle={this.props.pressedMarkerStyle}
               />
           </View>
-
-          { twoMarkers && (positionOne !== this.props.sliderLength) && (
-            <View
-              style={[styles.touch, touchStyle, {left: -(trackThreeLength + width * 1.5)}]}
-              ref={component => this._markerTwo = component}
-              {...this._panResponderTwo.panHandlers}
-              >
-              <Marker
-                pressed={this.state.twoPressed}
-                value={this.state.valueOne}
-                markerStyle={this.props.markerStyle}
-                pressedMarkerStyle={this.props.pressedMarkerStyle}
-                />
-            </View>
-          ) }
-        </View>
-      </TouchableWithoutFeedback>
+        ) }
+      </View>
     );
   }
 };
@@ -290,8 +289,8 @@ module.exports = Slider;
 
 
 var styles = StyleSheet.create({
-  fullTrack: {
-    flexDirection: 'row',
+  row: {
+    flexDirection: 'row'
   },
   track: {
     justifyContent: 'center'
